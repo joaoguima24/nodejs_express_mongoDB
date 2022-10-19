@@ -3,6 +3,9 @@ const express = require('express');
 
 const app = express();
 
+//middleware
+app.use(express.json());
+
 //we are getting the tours from the json file with (fs)
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
@@ -21,8 +24,25 @@ app.get('/api/v1/tours', (req, res) => {
   });
 });
 
-app.post('/', (req, res) => {
-  res.status(200).json({ message: 'Welcome to our world' });
+app.post('/api/v1/tours', (req, res) => {
+  //giving a new id (just because we are faking the DB)
+  const newId = tours[tours.length - 1].id + 1;
+  //assign the id to the request body
+  const newTour = Object.assign({ id: newId }, req.body);
+  // push the new tour to the fake db
+  tours.push(newTour);
+  //overwrite the fake db
+
+  fs.writeFile(
+    `${__dirname}/dev-data/data/tours-simple.json`,
+    JSON.stringify(tours),
+    (err) => {
+      res.status(200).json({
+        status: 'success',
+        data: newTour,
+      });
+    }
+  );
 });
 
 const port = 3000;
