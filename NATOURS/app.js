@@ -13,7 +13,7 @@ const tours = JSON.parse(
 
 //GET ALL TOURS
 
-app.get('/api/v1/tours', (req, res) => {
+const getAllTours = (req, res) => {
   res.status(200).json({
     //we should pass the status and the number of results in the json data
     status: 'success',
@@ -24,10 +24,10 @@ app.get('/api/v1/tours', (req, res) => {
       tours,
     },
   });
-});
+};
 
 //GET A SINGLE TOUR BY ID
-app.get('/api/v1/tours/:id', (req, res) => {
+const getTourById = (req, res) => {
   const idToSearch = Number(req.params.id);
   const tour = tours.find((element) => element.id === idToSearch);
   if (!tour) {
@@ -42,10 +42,11 @@ app.get('/api/v1/tours/:id', (req, res) => {
       tour,
     },
   });
-});
+};
 
 // CREATE A TOUR
-app.post('/api/v1/tours', (req, res) => {
+
+const createTour = (req, res) => {
   //giving a new id (just because we are faking the DB)
   const newId = tours[tours.length - 1].id + 1;
   //assign the id to the request body
@@ -64,7 +65,10 @@ app.post('/api/v1/tours', (req, res) => {
       });
     }
   );
-});
+};
+
+app.route('/api/v1/tours').get(getAllTours).post(createTour);
+app.route('/api/v1/tours/:id').get(getTourById);
 
 const port = 3000;
 app.listen(port, () => {
