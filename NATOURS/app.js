@@ -8,7 +8,10 @@ const userRouter = require('./routes/userRoutes');
 const app = express();
 
 //middleware
-app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'development') {
+  //using the logger but only in the development env.
+  app.use(morgan('dev'));
+}
 app.use(express.json());
 
 //serving static files (public folder open to a static endpoint)
