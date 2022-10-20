@@ -7,6 +7,14 @@ const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 );
 
+exports.checkBody = (req, res, next) => {
+  if (!req.body.name || !req.body.price) {
+    res.status(400).json({ message: 'Name and price are mandatory params.' });
+    return;
+  }
+  next();
+};
+
 exports.getAllTours = (req, res) => {
   res.status(200).json({
     //we should pass the status and the number of results in the json data
