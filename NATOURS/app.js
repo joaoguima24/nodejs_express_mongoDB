@@ -1,9 +1,11 @@
 const fs = require('fs');
 const express = require('express');
+const morgan = require('morgan');
 
 const app = express();
 
 //middleware
+app.use(morgan('dev'));
 app.use(express.json());
 
 //we are getting the tours from the json file with (fs)
