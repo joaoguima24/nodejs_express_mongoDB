@@ -11,6 +11,9 @@ const app = express();
 app.use(morgan('dev'));
 app.use(express.json());
 
+//serving static files (public folder open to a static endpoint)
+app.use(express.static(`${__dirname}/public`));
+
 //giving the tourRouter the main rout
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
