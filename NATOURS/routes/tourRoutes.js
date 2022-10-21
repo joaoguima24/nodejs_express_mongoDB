@@ -16,5 +16,8 @@ router
   .get(tourController.getAllTours)
   .post(tourController.createTour);
 
-router.route('/:id').get(tourController.getTourByID);
+router
+  .route('/:id')
+  .get(tourController.getTourByID)
+  .patch(tourController.updateTour);
 module.exports = router;
