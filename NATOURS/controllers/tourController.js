@@ -140,3 +140,17 @@ exports.updateTour = async (req, res) => {
     });
   }
 };
+
+exports.deleteByID = async (req, res) => {
+  try {
+    await Tour.findByIdAndDelete(req.params.id);
+    res.status(204).json({
+      status: 'Deleted with success',
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'failed',
+      message: err,
+    });
+  }
+};
