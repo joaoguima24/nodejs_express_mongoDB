@@ -1,3 +1,4 @@
+const { listen } = require('../app');
 const Tour = require('../models/tourModel');
 
 //GET ALL TOURS
@@ -94,14 +95,37 @@ exports.createTour = async (req, res) => {
 };
 
 exports.getAllTours = async (req, res) => {
-  const tours = await Tour.find();
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
+  try {
+    //Create another object equal to req.query
+    //so we can mannipulate it and don't mannipulate the req object
+    const queryObj = { ...req.query };
+    //Creating an array of fields that we want to exclude from the query params search
+    //Because we wan't them to another search result
+    const excludeFields = ['page', 'sort', 'limit', 'fields'];
+    //excluding that fields from the queryObj
+    excludeFields.forEach((elem) => delete queryObj[elem]);
+    //passing a filter to our methor find(), with the query params object
+    //adding an advanced filter to search >= / <= for example
+    // the object query that we receive is for example: {duration: {gte:5}}
+    //but the object that we need is: {duration: {$gte:5}}
+    let queryStr = JSON.stringify(queryObj);
+    //replacing with regex the : gte, gt , lte, lt:
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    const query = Tour.find(JSON.parse(queryStr));
+    const tours = await query;
+    res.status(200).json({
+      status: 'success',
+      results: tours.length,
+      data: {
+        tours,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'failed',
+      message: err,
+    });
+  }
 };
 
 exports.getTourByID = async (req, res) => {
