@@ -122,6 +122,14 @@ exports.getAllTours = async (req, res) => {
       //Passing a default sorting by date of creation
       query = query.sort('-createdAt');
     }
+
+    //Field limiting , like in sort we have to replace "," for " " in query params
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields);
+    } else {
+      query = query.select('-__v');
+    }
     const tours = await query;
     res.status(200).json({
       status: 'success',
