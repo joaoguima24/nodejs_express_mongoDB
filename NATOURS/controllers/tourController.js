@@ -1,5 +1,5 @@
-const { listen } = require('../app');
 const Tour = require('../models/tourModel');
+const APIFeatures = require('../utils/apiFeatures');
 
 //GET ALL TOURS
 
@@ -104,57 +104,12 @@ exports.aliasTopTours = (req, res, next) => {
 
 exports.getAllTours = async (req, res) => {
   try {
-    //Create another object equal to req.query
-    //so we can mannipulate it and don't mannipulate the req object
-    const queryObj = { ...req.query };
-    //Creating an array of fields that we want to exclude from the query params search
-    //Because we wan't them to another search result
-    const excludeFields = ['page', 'sort', 'limit', 'fields'];
-    //excluding that fields from the queryObj
-    excludeFields.forEach((elem) => delete queryObj[elem]);
-    //passing a filter to our methor find(), with the query params object
-    //adding an advanced filter to search >= / <= for example
-    // the object query that we receive is for example: {duration: {gte:5}}
-    //but the object that we need is: {duration: {$gte:5}}
-    let queryStr = JSON.stringify(queryObj);
-    //replacing with regex the : gte, gt , lte, lt:
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-    let query = Tour.find(JSON.parse(queryStr));
-    //if we are trying to sort: (and sort by more than 1 parameter)
-    if (req.query.sort) {
-      //we receive a query like : sort('price',ratingsAverage)
-      //but we want a query with no ","" but instead a " "
-      const sortBy = req.query.sort.split(',').join(' ');
-      query = query.sort(sortBy);
-    }
-
-    //Field limiting , like in sort we have to replace "," for " " in query params
-    if (req.query.fields) {
-      const fields = req.query.fields.split(',').join(' ');
-      query = query.select(fields);
-    } else {
-      query = query.select('-__v');
-    }
-
-    //pagination:
-    //we can get querys like for example: page=2&limit=10
-    //so the query for mongo will be: query = query.skip(2).limit(10);
-    //The result: page1: 1-10, page2: 11-20 ...
-    // we have to calculate the skip , because it's not user friendly to ask for the skip to user
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 10;
-    const skip = (page - 1) * limit;
-
-    query = query.skip(skip).limit(limit);
-
-    if (req.query.page) {
-      const numTours = await Tour.countDocuments();
-      if (skip >= numTours) {
-        throw new Error('this page does not exists');
-      }
-    }
-
-    const tours = await query;
+    const features = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const tours = await features.query;
     res.status(200).json({
       status: 'success',
       results: tours.length,
