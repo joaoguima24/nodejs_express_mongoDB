@@ -230,3 +230,64 @@ exports.getTourStats = async (req, res) => {
     });
   }
 };
+
+//Creating a pipeline to count how many tours we have per month
+exports.getMonthlyPlan = async (req, res) => {
+  try {
+    //getting the year from the url params (*1 to turn that in a Number)
+    const year = req.params.year * 1;
+    //We got an array of dates in every Tour
+    const plan = await Tour.aggregate([
+      {
+        //Unwind will convert each date inside of the dates Array, to a separated tour
+        $unwind: '$startDates',
+      },
+      //Now we want to match every tour that equal to the year
+      {
+        $match: {
+          //So we are going to search for startDates > first day of the Year and < then the last day of the Year
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      //Now we have to group our results by month
+      {
+        $group: {
+          //Using the pipeline operator $month to group by month
+          _id: { $month: '$startDates' },
+          //Adding 1 to every Group of months
+          numOfTours: { $sum: 1 },
+          //Creating an array with the name of the tours per month, with the pipeline operator $push
+          tours: { $push: '$name' },
+        },
+      },
+      {
+        //Labeling the Groups with the key:month / value:$_id
+        $addFields: { month: '$_id' },
+      },
+      {
+        //We can hide or show a field using $project (0 to hide, 1 to show)
+        $project: { _id: 0 },
+      },
+      {
+        //Sorting the groups in the descending order
+        $sort: { numOfTours: -1 },
+      },
+    ]);
+
+    //Sending our response
+    res.status(200).json({
+      status: 'success',
+      data: {
+        plan,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'failed',
+      message: err,
+    });
+  }
+};

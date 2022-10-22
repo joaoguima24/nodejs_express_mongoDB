@@ -16,8 +16,11 @@ router
   .route('/top-5-cheap')
   .get(tourController.aliasTopTours, tourController.getAllTours);
 
-//Routing our pipeline
+//Routing our stats pipeline
 router.route('/tour-stats').get(tourController.getTourStats);
+
+//Routing our monthly plan pipeline
+router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
 
 router
   .route('/')
