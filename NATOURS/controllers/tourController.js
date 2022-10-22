@@ -175,3 +175,58 @@ exports.deleteByID = async (req, res) => {
     });
   }
 };
+
+//Creating an aggregation pipeline to get stats of the tours
+exports.getTourStats = async (req, res) => {
+  try {
+    //Using the mongoose aggregate method
+    const stats = await Tour.aggregate([
+      //We can use as many match as we want to make our query
+      {
+        //find every Tour with ratingAverage greater then 4.5
+        $match: { ratingsAverage: { $gte: 3 } },
+      },
+      {
+        //find every tour with difficulty !== "easy"
+        $match: { difficulty: { $ne: 'easy' } },
+      },
+      {
+        //Grouping our pipeline by:
+        $group: {
+          //Specifieing the _id to null to aggroup everything
+          //_id: null, Or we can group by field like (don't forget the "$"):
+          _id: '$difficulty',
+          //Sum all the data that are aggrouped (we add 1 for each Tour)
+          numOfTours: { $sum: 1 },
+          //Sum all the ratings (ratingQuantity property of every tour)
+          numOfRatings: { $sum: '$ratingsQuantity' },
+          //Calculating the average Rating (we have to use "$"before the name of the field)
+          avgRating: { $avg: '$ratingsAverage' },
+          //Calculating the average price
+          avgPrice: { $avg: '$price' },
+          //Calculating the max price
+          maxPrice: { $max: '$price' },
+          //calculating the min price
+          minPrice: { $min: '$price' },
+        },
+      },
+      //We can now add more methods like sort for example, but we have to use the new variables
+      //like numOfTours/numOfRatings ...
+      {
+        //sorting by avgPrice (1 to ascending)
+        $sort: { avgPrice: 1 },
+      },
+    ]);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'failed',
+      message: err,
+    });
+  }
+};
