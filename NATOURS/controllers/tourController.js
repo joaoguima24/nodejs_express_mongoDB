@@ -94,6 +94,14 @@ exports.createTour = async (req, res) => {
   }
 };
 
+//Adding a middleware
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = 'price,-ratingsAverage';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+  next();
+};
+
 exports.getAllTours = async (req, res) => {
   try {
     //Create another object equal to req.query
@@ -118,9 +126,6 @@ exports.getAllTours = async (req, res) => {
       //but we want a query with no ","" but instead a " "
       const sortBy = req.query.sort.split(',').join(' ');
       query = query.sort(sortBy);
-    } else {
-      //Passing a default sorting by date of creation
-      query = query.sort('-createdAt');
     }
 
     //Field limiting , like in sort we have to replace "," for " " in query params
@@ -130,6 +135,25 @@ exports.getAllTours = async (req, res) => {
     } else {
       query = query.select('-__v');
     }
+
+    //pagination:
+    //we can get querys like for example: page=2&limit=10
+    //so the query for mongo will be: query = query.skip(2).limit(10);
+    //The result: page1: 1-10, page2: 11-20 ...
+    // we have to calculate the skip , because it's not user friendly to ask for the skip to user
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 10;
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) {
+        throw new Error('this page does not exists');
+      }
+    }
+
     const tours = await query;
     res.status(200).json({
       status: 'success',
