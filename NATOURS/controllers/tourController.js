@@ -111,7 +111,17 @@ exports.getAllTours = async (req, res) => {
     let queryStr = JSON.stringify(queryObj);
     //replacing with regex the : gte, gt , lte, lt:
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-    const query = Tour.find(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
+    //if we are trying to sort: (and sort by more than 1 parameter)
+    if (req.query.sort) {
+      //we receive a query like : sort('price',ratingsAverage)
+      //but we want a query with no ","" but instead a " "
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      //Passing a default sorting by date of creation
+      query = query.sort('-createdAt');
+    }
     const tours = await query;
     res.status(200).json({
       status: 'success',
