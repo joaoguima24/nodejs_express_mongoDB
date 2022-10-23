@@ -61,6 +61,10 @@ const tourSchema = new mongoose.Schema(
       select: false,
     },
     startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false,
+    },
   },
   //Adding the object properties
   {
@@ -73,6 +77,29 @@ const tourSchema = new mongoose.Schema(
 //Virtual Properties
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
+});
+
+//QUERY MIDDLEWARE / HOOK
+
+//Now we have secret tours, and before each find() we want to hide secretTours
+
+//we use tourSchema.pre (pre middleware) and then pass a function with method next
+//tourSchema.pre('find', function (next) {
+
+//But we want to hide the secretTour in the findById, we can copy paste the methodBefore
+//or we can use a regEx like this (all the methods started by find):
+tourSchema.pre(/^find/, function (next) {
+  this.find({ secretTour: { $ne: true } });
+
+  //using the Date.now in pre-hook to calculate the time tooked by this method in the post hook
+  this.start = Date.now();
+  next();
+});
+
+//Using the post hook to calculate the time that the query took
+tourSchema.post(/^find/, function (docs, next) {
+  console.log(`This query took: ${Date.now() - this.start}ms`);
+  next();
 });
 
 //Creating our model
