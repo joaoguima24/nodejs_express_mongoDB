@@ -1,3 +1,23 @@
+const AppError = require('../utils/appError');
+
+const handleCastErrorDB = (err) => {
+  const message = `Invalid ${err.path} : ${err.value}`;
+  return new AppError(message, 400);
+};
+
+const handDuplicatedFieldsDb = (err) => {
+  const message = `The name of the tour already exists, please choose another`;
+  return new AppError(message, 400);
+};
+
+const handleValidationErrorDB = (err) => {
+  //we will iterate through the object errors, and get the message from it
+  const errors = Object.values(err.errors).map((el) => el.message);
+  //we will pass the map and join every error separated by ". " (with join())
+  const message = `Invalid parameter. ${errors.join('. ')}`;
+  return new AppError(message, 400);
+};
+
 const sendErrorProd = (err, res) => {
   //Operational errors, we have to send it to client
   if (err.isOperational) {
@@ -32,7 +52,20 @@ module.exports = (err, req, res, next) => {
 
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
-  } else if (process.NODE_ENV === 'production') {
-    sendErrorProd(err, res);
+  } else if (process.env.NODE_ENV === 'production') {
+    //we have errors for example from the db that is not created by us like (CastError, )
+    //, so the user will get our
+    //'something went wrong' message, but we should instead pass information to the user, like:
+
+    //The id is wrong ... , so we will create handlers for that errors
+
+    let error = { ...err };
+    //If we search for an Invalid ID
+    if (err.name === 'CastError') error = handleCastErrorDB(error);
+    //If we get duplicated values (like name of tour for example)
+    if (error.code === 11000) error = handDuplicatedFieldsDb(error);
+    //if we pass invalid parameters
+    if (err.name === 'ValidationError') error = handleValidationErrorDB(error);
+    sendErrorProd(error, res);
   }
 };
