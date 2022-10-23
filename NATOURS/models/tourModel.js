@@ -11,6 +11,7 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'The name of the tour is mandatory.'],
       unique: true,
       trim: true,
+      minlength: [8, 'A tour mus have at least 8 characters'],
     },
     duration: {
       type: Number,
@@ -19,6 +20,11 @@ const tourSchema = new mongoose.Schema(
     difficulty: {
       type: String,
       requires: [true, 'Difficulty is mandatory'],
+      enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message:
+          'A tour can only have one of this three values: easy,medium,difficult',
+      },
     },
     maxGroupSize: {
       type: Number,
@@ -27,6 +33,8 @@ const tourSchema = new mongoose.Schema(
     ratingsAverage: {
       type: Number,
       default: 0,
+      min: [1, 'A tour must have a minimumm value above 1'],
+      max: [5, 'A tour must have a max value below 5'],
     },
     ratingsQuantity: {
       type: Number,
@@ -39,6 +47,13 @@ const tourSchema = new mongoose.Schema(
     },
     priceDiscount: {
       type: Number,
+      //this validator only works when we create a new document
+      validate: {
+        validator: function (val) {
+          return val >= this.price;
+        },
+        message: 'Discount must be lower than price',
+      },
     },
     summary: {
       type: String,
@@ -79,7 +94,7 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
-//QUERY MIDDLEWARE / HOOK
+//QUERY MIDDLEWARE / HOOK (this. refers to the query itself)
 
 //Now we have secret tours, and before each find() we want to hide secretTours
 
@@ -102,6 +117,14 @@ tourSchema.post(/^find/, function (docs, next) {
   next();
 });
 
+//AGGREGATION MIDDLEWARE (.this refers to the aggregation itself)
+
+tourSchema.pre('aggregate', function (next) {
+  //We will hide the secret tours in the aggregation pipeline (getStats())
+  //this.pipeline will refer to the Array, so we have to add another $match
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  next();
+});
 //Creating our model
 const Tour = mongoose.model('Tour', tourSchema);
 
