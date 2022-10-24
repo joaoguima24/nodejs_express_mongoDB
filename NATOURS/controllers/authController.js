@@ -15,6 +15,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
     photo: req.body.photo,
     passwordChangedAt: req.body.passwordChangedAt,
+    role: req.body.role,
   });
 
   //TOKEN GENERATOR:

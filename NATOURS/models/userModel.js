@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema({
       message: 'The passwords does not match',
     },
   },
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
+  },
 });
 
 //Encrypting the password (with a pre middleware)

@@ -4,7 +4,7 @@ const catchAsync = require('./catchAsync');
 const AppError = require('./appError');
 const User = require('../models/userModel');
 
-//We will use this function as middleware to check if the token is valid
+//We will use this function as middleware to check if the token is valid (authentication validation)
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
 
@@ -56,5 +56,23 @@ exports.protect = catchAsync(async (req, res, next) => {
       );
     }
   }
+
+  //we pass the freshUser to the req so from now, we can use the user in the next middleware
+  req.user = freshUser;
+
   next();
 });
+
+//we need to create a wraper function to be able to receive arguments in a middleware
+//closers
+
+exports.restrictTo = (...roles) =>
+  //roles is an array of roles like ['admin', 'lead-guide']
+  catchAsync(async (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You do not have permission to perform this action', 403)
+      );
+    }
+    next();
+  });

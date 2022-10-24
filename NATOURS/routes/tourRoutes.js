@@ -26,11 +26,15 @@ router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
 router
   .route('/')
   .get(tokenValidator.protect, tourController.getAllTours)
-  .post(tourController.createTour);
+  .post(tokenValidator.protect, tourController.createTour);
 
 router
   .route('/:id')
-  .get(tourController.getTourByID)
-  .patch(tourController.updateTour)
-  .delete(tourController.deleteByID);
+  .get(tokenValidator.protect, tourController.getTourByID)
+  .patch(tokenValidator.protect, tourController.updateTour)
+  .delete(
+    tokenValidator.protect,
+    tokenValidator.restrictTo('admin', 'lead-guide'),
+    tourController.deleteByID
+  );
 module.exports = router;
