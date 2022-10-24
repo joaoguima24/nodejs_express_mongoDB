@@ -1,6 +1,13 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
+//Leading with uncaughtException , like when we try to access to somethig that is not declared
+process.on('uncaughtException', (err) => {
+  console.log(err.name, err.message);
+
+  process.exit(1);
+});
+
 dotenv.config({ path: './config.env' });
 const app = require('./app');
 
@@ -21,6 +28,14 @@ mongoose
 
 const port = process.env.PORT;
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App running on port ${port}`);
+});
+
+//Leading with unhandle Rejection , like if the connection to our db doesn't work:
+process.on('unhandledRejection', (err) => {
+  console.log(err.name, err.message);
+  server.close(() => {
+    process.exit(1);
+  });
 });
