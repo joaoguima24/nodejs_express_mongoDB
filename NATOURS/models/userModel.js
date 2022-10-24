@@ -41,6 +41,8 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'guide', 'lead-guide', 'admin'],
     default: 'user',
   },
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
 
 //Encrypting the password (with a pre middleware)
@@ -48,6 +50,13 @@ const userSchema = new mongoose.Schema({
 userSchema.pre('save', async function (next) {
   //If the password was not modified (like in an update, we pass the next())
   if (!this.isModified('password')) return next();
+
+  //If the password was modified for an update (this.isNew === false), so we pass the date.
+  if (!this.isNew) {
+    //we subtract 1second to the time, because sometimes the tokenGenerator is slower then this method,
+    //and then the token was expired...
+    this.passwordChangedAt = Date.now() - 1000;
+  }
 
   //Call the encryptor in utils (we have to await because other way it resolves a promise)
   this.password = await pwEncryptor.encrypt(this.password);
