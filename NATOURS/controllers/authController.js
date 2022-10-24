@@ -70,6 +70,35 @@ exports.login = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  //Get user from collection
+  const user = await User.findById(req.user.id).select('+password');
+
+  //check if he posted the current password correctly
+  if (
+    !(await pwEncryptor.comparePassword(
+      req.body.currentPassword,
+      user.password
+    ))
+  ) {
+    return next(new AppError('The current password is wrong', 400));
+  }
+
+  //if so , update the password
+  user.password = req.body.newPassword;
+  user.passwordConfirm = req.body.confirmNewPassword;
+  await user.save();
+  //log user in
+  const token = tokenGenerator.tokenGen(user.id);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      token,
+    },
+  });
+  next();
+});
+
 //F O R G O T  P A S S W O R D ! ! !
 //sending an reset token to the client e-mail
 
