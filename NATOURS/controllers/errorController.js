@@ -5,7 +5,7 @@ const handleCastErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
-const handDuplicatedFieldsDb = (err) => {
+const handDuplicatedFieldsDb = () => {
   const message = `The name of the tour already exists, please choose another`;
   return new AppError(message, 400);
 };
@@ -17,6 +17,12 @@ const handleValidationErrorDB = (err) => {
   const message = `Invalid parameter. ${errors.join('. ')}`;
   return new AppError(message, 400);
 };
+
+const handleJWTError = () =>
+  new AppError('Invalid token, please login again', 401);
+
+const handleJWTExpiredError = () =>
+  new AppError('Your login time has expired, pleas login again', 401);
 
 const sendErrorProd = (err, res) => {
   //Operational errors, we have to send it to client
@@ -66,6 +72,11 @@ module.exports = (err, req, res, next) => {
     if (error.code === 11000) error = handDuplicatedFieldsDb(error);
     //if we pass invalid parameters
     if (err.name === 'ValidationError') error = handleValidationErrorDB(error);
+    //if we get an error from JWT token
+    if (err.name === 'JsonWebTokenError') error = handleJWTError(error);
+    //if the token has expired
+    if (err.name === 'TokenExpiredError') error = handleJWTExpiredError(error);
+
     sendErrorProd(error, res);
   }
 };
