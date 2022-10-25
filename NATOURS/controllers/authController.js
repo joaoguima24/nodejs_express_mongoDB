@@ -20,14 +20,11 @@ exports.signup = catchAsync(async (req, res, next) => {
     role: req.body.role,
   });
 
-  //TOKEN GENERATOR:
-
-  //Call our tokenGenerator:
-  const token = tokenGenerator.tokenGen(newUser.id);
+  //this way the password will not appear in the resposne
+  newUser.password = undefined;
 
   res.status(201).json({
     status: 'success',
-    token: token,
     data: {
       user: newUser,
     },
@@ -64,6 +61,25 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   const token = tokenGenerator.tokenGen(user.id);
+
+  //Sending TOKEN as a COOKIE
+
+  //we create the cookie options that we will pass to the res.cookie
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+
+  //we only pass the secure: true (to use https) in production, because in dev we aren't using the https method
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true;
+  }
+
+  //we pass the cookie token, with the header 'jwt', the token , and the options
+  res.cookie('jwt', token, cookieOptions);
+
   res.status(200).json({
     status: 'success',
     token,
