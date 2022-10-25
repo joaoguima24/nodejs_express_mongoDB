@@ -1,6 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 const AppError = require('./utils/appError');
 const errorController = require('./controllers/errorController');
 
@@ -11,13 +12,17 @@ const userRouter = require('./routes/userRoutes');
 const app = express();
 
 //Global middleware
+
+// Security HTTP headers
+app.use(helmet());
+
+//Logger middleware
 if (process.env.NODE_ENV === 'development') {
   //using the logger but only in the development env.
   app.use(morgan('dev'));
 }
 
 //Implementing the limiter global middleware, so you can only do X requests per hour
-
 const limiter = rateLimit({
   //max requests per ip
   max: 100,
@@ -25,11 +30,12 @@ const limiter = rateLimit({
   windowsMs: 60 * 60 * 1000,
   message: 'Too many requests from this IP, please try again later',
 });
-
 //passing the middleware to every request to our routes starting in '/api'
 app.use('/api', limiter);
 
-app.use(express.json());
+//Body parser middleware, reading data from the body (req.body)
+//Setting the option limit of 10kb per request to protect our API from big amount of data atack
+app.use(express.json({ limit: '10kb' }));
 
 //serving static files (public folder open to a static endpoint)
 app.use(express.static(`${__dirname}/public`));
