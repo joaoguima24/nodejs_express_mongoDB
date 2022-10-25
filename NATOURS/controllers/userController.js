@@ -45,3 +45,11 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+//Delete user, we don't wan't to delete the user, but instead, to update the account to active: false
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+  res.status(204).json({
+    status: 'success',
+  });
+});
