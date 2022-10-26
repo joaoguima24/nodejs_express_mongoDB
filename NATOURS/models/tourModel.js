@@ -69,13 +69,48 @@ const tourSchema = new mongoose.Schema(
       type: String,
       required: [true, 'The image of the tour is mandatory'],
     },
+
     images: [String],
+
     createdAt: {
       type: Date,
       default: Date.now(),
       select: false,
     },
+
     startDates: [Date],
+
+    startLocation: {
+      //GeoJson, we can have different types of geo location (like point, lines etc...)
+      type: {
+        type: String,
+        //In this way we use as default a point and with the enum we restrict it to only a point
+        //The user can no longer pass other type (like a line)
+        default: 'Point',
+        enum: ['Point'],
+      },
+      //In the coordinates we should receive an a array of numbers
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+
+    //Creating an embedded document for the locations
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+
+    //to private tours
     secretTour: {
       type: Boolean,
       default: false,

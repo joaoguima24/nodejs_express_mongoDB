@@ -22,9 +22,7 @@ mongoose
   })
   .then(() => console.log('MongoDB connected !'));
 
-const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8')
-);
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
 
 const importData = async () => {
   try {
@@ -35,7 +33,18 @@ const importData = async () => {
   }
 };
 
+const deleteData = async () => {
+  try {
+    await Tour.deleteMany();
+    console.log('Data deleted with success');
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 //giving access to a running shell script
 if (process.argv[2] === '--import') {
   importData();
+} else if (process.argv[2] === '--delete') {
+  deleteData();
 }
