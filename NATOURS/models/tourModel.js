@@ -1,6 +1,7 @@
 //Creating a schema
 //Importing mongoose framework
 const mongoose = require('mongoose');
+const User = require('./userModel');
 
 //creating our DTO (we can pass object and the object properties like we did here)
 const tourSchema = new mongoose.Schema(
@@ -13,10 +14,12 @@ const tourSchema = new mongoose.Schema(
       trim: true,
       minlength: [8, 'A tour mus have at least 8 characters'],
     },
+
     duration: {
       type: Number,
       requires: [true, 'Duration is mandatory'],
     },
+
     difficulty: {
       type: String,
       requires: [true, 'Difficulty is mandatory'],
@@ -26,25 +29,31 @@ const tourSchema = new mongoose.Schema(
           'A tour can only have one of this three values: easy,medium,difficult',
       },
     },
+
     maxGroupSize: {
       type: Number,
       requires: [true, 'GroupSize is mandatory'],
     },
+
     ratingsAverage: {
       type: Number,
       default: 0,
       min: [1, 'A tour must have a minimumm value above 1'],
       max: [5, 'A tour must have a max value below 5'],
     },
+
     ratingsQuantity: {
       type: Number,
       default: 0,
     },
+
     rating: Number,
+
     price: {
       type: Number,
       required: [true, 'The price of the tour is mandatory'],
     },
+
     priceDiscount: {
       type: Number,
       //this validator only works when we create a new document
@@ -55,16 +64,19 @@ const tourSchema = new mongoose.Schema(
         message: 'Discount must be lower than price',
       },
     },
+
     summary: {
       type: String,
       required: [true, 'The summary of the tour is mandatory'],
       trim: true,
     },
+
     description: {
       type: String,
       requires: [true, 'Description is mandatory'],
       trim: true,
     },
+
     imageCover: {
       type: String,
       required: [true, 'The image of the tour is mandatory'],
@@ -110,12 +122,16 @@ const tourSchema = new mongoose.Schema(
       },
     ],
 
+    //Adding User guides to our tour, using a pre-save middlleware
+    guides: Array,
+
     //to private tours
     secretTour: {
       type: Boolean,
       default: false,
     },
   },
+
   //Adding the object properties
   {
     //Turning the virtual properties of our object to true
@@ -130,6 +146,18 @@ tourSchema.virtual('durationWeeks').get(function () {
 });
 
 //QUERY MIDDLEWARE / HOOK (this. refers to the query itself)
+
+//EMBEDDING DATA !!
+
+//Document middleware for ADDING a User to our document
+tourSchema.pre('save', async function (next) {
+  //we use the guides array(of User id's) in the req.body params, and will add the User to our document
+  const guidesPromisses = this.guides.map(
+    async (id) => await User.findById(id)
+  );
+  this.guides = await Promise.all(guidesPromisses);
+  next();
+});
 
 //Now we have secret tours, and before each find() we want to hide secretTours
 
