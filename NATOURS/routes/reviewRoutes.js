@@ -2,7 +2,8 @@ const express = require('express');
 const reviewController = require('../controllers/reviewController');
 const tokenValidator = require('../utils/tokenValidator');
 
-const router = express.Router();
+//To have access to nested routes, we need to set mergeParams to true
+const router = express.Router({ mergeParams: true });
 
 router
   .route('/')

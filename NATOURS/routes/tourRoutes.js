@@ -1,16 +1,22 @@
 const express = require('express');
 const tourController = require('../controllers/tourController');
 const tokenValidator = require('../utils/tokenValidator');
+const reviewRouter = require('./reviewRoutes');
+// const reviewController = require('../controllers/reviewController');
 
 const router = express.Router();
 
-// router.param('body', tourController.checkBody);
-
+// //Nested route ({{URL}}/tour/:tourId/reviews)
 // router
-//   .route('/')
-//   .get(tourController.getAllTours)
-//   .post(tourController.checkBody, tourController.createTour);
-// router.route('/:id').get(tourController.getTourById);
+//   .route('/:tourId/reviews')
+//   .post(
+//     tokenValidator.protect,
+//     tokenValidator.restrictTo('user'),
+//     reviewController.createReview
+//   );
+
+//now using express router: (we need to set mergeParams to true in the reviewRouter)
+router.use('/:tourId/reviews', reviewRouter);
 
 //first we pass through the middleware then we go to getAllTours
 router
@@ -37,4 +43,5 @@ router
     tokenValidator.restrictTo('admin', 'lead-guide'),
     tourController.deleteByID
   );
+
 module.exports = router;

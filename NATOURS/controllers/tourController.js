@@ -122,7 +122,8 @@ exports.getAllTours = async (req, res) => {
 };
 
 exports.getTourByID = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findById(req.params.id);
+  //we use the virtual property that we set in the tourModel
+  const tour = await Tour.findById(req.params.id).populate('reviews');
   if (!tour) {
     return next(new AppError('No tour find with that ID', 404));
   }

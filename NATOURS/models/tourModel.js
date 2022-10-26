@@ -157,6 +157,16 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+//Virtual populate properties from another document (reviews),
+//then we have to call the method populate in the query (like we did in getTourById)
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  //The field name(tour) that we are going to compare in the foreign document(reviews)
+  foreignField: 'tour',
+  //The field name(_id) that we are going to compare with the foreign field
+  localField: '_id',
+});
+
 //QUERY MIDDLEWARE / HOOK (this. refers to the query itself)
 
 //EMBEDDING DATA !!
