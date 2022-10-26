@@ -122,8 +122,20 @@ const tourSchema = new mongoose.Schema(
       },
     ],
 
-    //Adding User guides to our tour, using a pre-save middlleware
+    //Adding User guides to our tour!!
+    //Embeded using a pre-save middlleware
     guides: Array,
+
+    //Or Referencing, passing the id:
+    //Next we have to populate the query (just adding .populate(guides) in the query)
+    // guide: [
+    //   {
+    //     //Refering the data we wan't to keep (Id in this case)
+    //     type: mongoose.Schema.ObjectId,
+    //     //From wich document.
+    //     ref: 'User',
+    //   }
+    // ]
 
     //to private tours
     secretTour: {
@@ -158,6 +170,18 @@ tourSchema.pre('save', async function (next) {
   this.guides = await Promise.all(guidesPromisses);
   next();
 });
+
+//POPULATING DATA !!
+
+// //Adding a pre query Find middleware
+// tourSchema.pre(/^find/, function (next) {
+//   //populate the query with the field 'guides', but we don't wan't the field -__v ...
+//   this.populate({
+//     path: 'guides',
+//     select: '-__v -passwordChangedAt',
+//   });
+//   next();
+// });
 
 //Now we have secret tours, and before each find() we want to hide secretTours
 
