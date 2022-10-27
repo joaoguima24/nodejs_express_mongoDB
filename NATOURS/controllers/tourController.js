@@ -263,3 +263,36 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+//Geospatial search:
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,lng',
+        400
+      )
+    );
+  }
+  //Calculating the radius of the search, so we will divide the distance to look by diferent values
+  const radius = unit === 'km' ? distance / 6378.1 : distance / 3963.2;
+
+  //The query, using $geoWithin, we have to pass a object $centerSphere that accepts an Array, with another Array
+  //that contains longitude and latitude (by this order), and the radius distance to look
+
+  //IMPORTANT: we need to create an index to startLocation (in tourModel)
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});

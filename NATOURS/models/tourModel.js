@@ -156,6 +156,9 @@ const tourSchema = new mongoose.Schema(
 //it will order the prices and the db now don't have to run all the documents to query for price
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 
+//Creating an index to geospacial search
+tourSchema.index({ startLocation: '2dsphere' });
+
 //Virtual Properties
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
