@@ -1,6 +1,6 @@
 const Review = require('../models/reviewModel');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
+const handlerFactory = require('../utils/handlerFactory');
 
 exports.createReview = catchAsync(async (req, res, next) => {
   //Allow nested routes (if the values don't appear in the body request, they will be in the Url params)
@@ -31,3 +31,10 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+//Using our closer handleFactory
+exports.deleteById = handlerFactory.deleteOne(Review);
+
+exports.updateById = handlerFactory.updateOne(Review);
+
+exports.getReviewById = handlerFactory.getOne(Review);

@@ -27,12 +27,22 @@ router
 router.route('/tour-stats').get(tourController.getTourStats);
 
 //Routing our monthly plan pipeline
-router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
+router
+  .route('/monthly-plan/:year')
+  .get(
+    tokenValidator.protect,
+    tokenValidator.restrictTo('admin', 'lead-guide'),
+    tourController.getMonthlyPlan
+  );
 
 router
   .route('/')
-  .get(tokenValidator.protect, tourController.getAllTours)
-  .post(tokenValidator.protect, tourController.createTour);
+  .get(tourController.getAllTours)
+  .post(
+    tokenValidator.protect,
+    tokenValidator.restrictTo('admin', 'lead-guide'),
+    tourController.createTour
+  );
 
 router
   .route('/:id')

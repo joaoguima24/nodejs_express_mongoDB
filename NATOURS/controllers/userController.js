@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
+const handlerFactory = require('../utils/handlerFactory');
 
 //this method will loop through the object req.body and saves every field === allowedFields Array,
 const filterObj = (obj, ...allowedFields) => {
@@ -24,6 +25,15 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+//implementing this middleware before the getOne factory handler, because we don't have the user id in the req.params
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
+
+//using the factory handler to get user by id
+exports.getUser = handlerFactory.getOne(User);
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   // user cannot update the password here, so check that
