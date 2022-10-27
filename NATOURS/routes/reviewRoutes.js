@@ -10,7 +10,10 @@ router.use(tokenValidator.protect);
 router
   .route('/')
   .get(reviewController.getAllReviews)
-  .post(tokenValidator.restrictTo('user'), reviewController.createReview);
+  .post(
+    tokenValidator.restrictTo('user', 'admin'),
+    reviewController.createReview
+  );
 
 router
   .route('/:id')
