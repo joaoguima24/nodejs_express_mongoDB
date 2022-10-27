@@ -223,12 +223,12 @@ tourSchema.post(/^find/, function (docs, next) {
 
 //AGGREGATION MIDDLEWARE (.this refers to the aggregation itself)
 
-tourSchema.pre('aggregate', function (next) {
-  //We will hide the secret tours in the aggregation pipeline (getStats())
-  //this.pipeline will refer to the Array, so we have to add another $match
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   //We will hide the secret tours in the aggregation pipeline (getStats())
+//   //this.pipeline will refer to the Array, so we have to add another $match
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   next();
+// });
 //Creating our model
 const Tour = mongoose.model('Tour', tourSchema);
 

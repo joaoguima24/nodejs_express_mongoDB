@@ -171,10 +171,10 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
       //find every Tour with ratingAverage greater then 4.5
       $match: { ratingsAverage: { $gte: 3 } },
     },
-    {
-      //find every tour with difficulty !== "easy"
-      $match: { difficulty: { $ne: 'easy' } },
-    },
+    //{
+    //find every tour with difficulty !== "easy"
+    //$match: { difficulty: { $ne: 'easy' } },
+    //},
     {
       //Grouping our pipeline by:
       $group: {
@@ -293,6 +293,56 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
     results: tours.length,
     data: {
       data: tours,
+    },
+  });
+});
+
+//Calculating the distance from a point to the tours
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,lng',
+        400
+      )
+    );
+  }
+
+  const multiplier = unit === 'km' ? 0.001 : 0.000621371;
+
+  //We will use an aggregation pipeline with $geoNear (that has to be the first), we need that the locations we are
+  //searching for, be indexed (so we have startLocation as geo index in tourModel)
+  const distances = await Tour.aggregate([
+    {
+      $geoNear: {
+        //Near and distance field are mandatory, and we have to pass the json with type and the coordinates
+        //we multiply by 1 to get a number
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1],
+        },
+        distanceField: 'distance',
+        //The result of the pipeline comes in meters, so we will multiply for 0.001 (=== /1000)
+        distanceMultiplier: multiplier,
+      },
+    },
+    //We only wan't to see the distance and the name of the Tour
+    {
+      $project: {
+        distance: 1,
+        name: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    results: distances.length,
+    data: {
+      distances,
     },
   });
 });

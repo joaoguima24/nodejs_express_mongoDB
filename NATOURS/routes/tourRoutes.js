@@ -35,10 +35,13 @@ router
     tourController.getMonthlyPlan
   );
 
-//Geospatial search
+//Geospatial search within
 router
   .route('/tours-within/:distance/center/:latlng/unit/:unit')
   .get(tourController.getToursWithin);
+
+//Geospatial calculating distances:
+router.route('/distances/:latlng/unit/:unit').get(tourController.getDistances);
 
 router
   .route('/')
