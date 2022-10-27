@@ -1,5 +1,6 @@
 const catchAsync = require('./catchAsync');
 const AppError = require('./appError');
+const APIFeatures = require('./apiFeatures');
 
 //Working with closers, the inner function will have acess to the variables of the outer function that call's him
 exports.deleteOne = (Model) =>
@@ -44,6 +45,30 @@ exports.getOne = (Model, popOptions) =>
       status: 'success',
       data: {
         data: query,
+      },
+    });
+  });
+
+exports.createOne = (Model) =>
+  catchAsync(async (req, res, next) => {
+    const doc = await Model.create(req.body);
+
+    res.status(201).json({
+      status: 'success',
+      data: {
+        data: doc,
+      },
+    });
+  });
+
+exports.getAll = (Model) =>
+  catchAsync(async (req, res, next) => {
+    const doc = await Model.find();
+    res.status(200).json({
+      status: 'success',
+      results: doc.length,
+      data: {
+        data: doc,
       },
     });
   });
